@@ -1,7 +1,6 @@
-diff -ru --no-dereference linux-v4.4.138-cip25/arch/powerpc/boot/dts/mpc834x_mds.dts linux-v4.4.138-cip25-mod/arch/powerpc/boot/dts/mpc834x_mds.dts
---- linux-v4.4.138-cip25/arch/powerpc/boot/dts/mpc834x_mds.dts	2018-06-19 11:05:29.000000000 -0700
-+++ linux-v4.4.138-cip25-mod/arch/powerpc/boot/dts/mpc834x_mds.dts	2021-05-07 09:13:28.303836474 -0700
-@@ -8,24 +8,30 @@
+--- linux-v4.4.138-cip25/arch/powerpc/boot/dts/mpc834x_mds.dts	2021-05-15 10:58:01.966380235 -0700
++++ linux-v4.4.138-cip25-mod/arch/powerpc/boot/dts/mpc834x_mds.dts	2021-05-15 11:15:32.582820169 -0700
+@@ -8,22 +8,28 @@
   * Free Software Foundation;  either version 2 of the  License, or (at your
   * option) any later version.
   */
@@ -26,15 +25,13 @@ diff -ru --no-dereference linux-v4.4.138-cip25/arch/powerpc/boot/dts/mpc834x_mds
  		pci0 = &pci0;
 -		pci1 = &pci1;
 +		// pci1 = &pci1;
- 	};
- 
++	};
++
 +	chosen {
 +		linux,stdout-path = "/soc8349@e0000000/serial@4500";
-+        };
-+
+ 	};
+ 
  	cpus {
- 		#address-cells = <1>;
- 		#size-cells = <0>;
 @@ -45,7 +51,9 @@
  
  	memory {
@@ -94,7 +91,7 @@ diff -ru --no-dereference linux-v4.4.138-cip25/arch/powerpc/boot/dts/mpc834x_mds
  		};
  
  		i2c@3100 {
-@@ -176,11 +214,12 @@
+@@ -176,11 +214,13 @@
  			compatible = "gianfar";
  			reg = <0x24000 0x1000>;
  			ranges = <0x0 0x24000 0x1000>;
@@ -106,10 +103,25 @@ diff -ru --no-dereference linux-v4.4.138-cip25/arch/powerpc/boot/dts/mpc834x_mds
 -			phy-handle = <&phy0>;
 +			// phy-handle = <&phy0>; // old one
 +			phy-handle = <&phy1>;
++			phy-connection-type = "rgmii-id";
  			linux,network-index = <0>;
  
  			mdio@520 {
-@@ -208,6 +247,7 @@
+@@ -189,11 +229,13 @@
+ 				compatible = "fsl,gianfar-mdio";
+ 				reg = <0x520 0x20>;
+ 
++				/*
+ 				phy0: ethernet-phy@0 {
+ 					interrupt-parent = <&ipic>;
+ 					interrupts = <17 0x8>;
+ 					reg = <0x0>;
+ 				};
++				*/
+ 
+ 				phy1: ethernet-phy@1 {
+ 					interrupt-parent = <&ipic>;
+@@ -208,6 +250,7 @@
  			};
  		};
  
@@ -117,7 +129,7 @@ diff -ru --no-dereference linux-v4.4.138-cip25/arch/powerpc/boot/dts/mpc834x_mds
  		enet1: ethernet@25000 {
  			#address-cells = <1>;
  			#size-cells = <1>;
-@@ -236,6 +276,7 @@
+@@ -236,6 +279,7 @@
  				};
  			};
  		};
@@ -125,7 +137,7 @@ diff -ru --no-dereference linux-v4.4.138-cip25/arch/powerpc/boot/dts/mpc834x_mds
  
  		serial0: serial@4500 {
  			cell-index = <0>;
-@@ -287,47 +328,71 @@
+@@ -287,47 +331,71 @@
  		interrupt-map-mask = <0xf800 0x0 0x0 0x7>;
  		interrupt-map = <
  
@@ -220,7 +232,7 @@ diff -ru --no-dereference linux-v4.4.138-cip25/arch/powerpc/boot/dts/mpc834x_mds
  		interrupt-parent = <&ipic>;
  		interrupts = <66 0x8>;
  		bus-range = <0 0>;
-@@ -344,64 +409,76 @@
+@@ -344,64 +412,76 @@
  		device_type = "pci";
  	};
  
@@ -249,11 +261,12 @@ diff -ru --no-dereference linux-v4.4.138-cip25/arch/powerpc/boot/dts/mpc834x_mds
 +		flash@fe000000 {
 +			compatible = "spansion,s29gl128n", "cfi-flash";
 +			//reg = <0xfe000000 0x01000000>;
++			// relative to containing memory range
 +			reg = <0 0x01000000>;
 +			bank-width = <2>;
 +		};
 +
-+		// works as long as e0000118 (SICRH) has bit 00000800 set
++		// Requires SICRH (e0000118) bit 00000800 set
 +		rtc: rtc {
 +			compatible = "ht,ht1380", "moxa,moxart-rtc";
 +			gpio-rtc-sclk = <&gpio0 10 0>;
@@ -318,7 +331,6 @@ diff -ru --no-dereference linux-v4.4.138-cip25/arch/powerpc/boot/dts/mpc834x_mds
 -				 0xb800 0x0 0x0 0x2 &ipic 23 0x8
 -				 0xb800 0x0 0x0 0x3 &ipic 20 0x8
 -				 0xb800 0x0 0x0 0x4 &ipic 21 0x8
-+		// don't know how to test
 +		beeper: beeper {
 +			compatible = "gpio-beeper";
 +			gpios = <&gpio0 25 GPIO_ACTIVE_HIGH>;
@@ -343,7 +355,7 @@ diff -ru --no-dereference linux-v4.4.138-cip25/arch/powerpc/boot/dts/mpc834x_mds
 -		       0xe0008380 0x8>;		/* config space access registers */
 -		compatible = "fsl,mpc8349-pci";
 -		device_type = "pci";
-+		// works as long as e0000118 (SICRH) has bit 00004000 set
++		// Requires SICRH (e0000118) bit 00004000 set
 +		gpio-poweroff {
 +			compatible = "gpio-poweroff";
 +			gpios = <&gpio1 12 0>;
